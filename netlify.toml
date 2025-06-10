@@ -2,5 +2,8 @@
   command = "pnpm prisma generate && pnpm run build"
   publish = ".next"
 
+[functions]
+  included_files = ["src/generated/prisma/**"]
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
