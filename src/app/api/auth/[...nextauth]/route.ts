@@ -1,4 +1,3 @@
-console.log("<<<<< EXECUTING LATEST NEXTAUTH ROUTE.TS - VERSION 2 >>>>>");
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
