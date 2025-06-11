@@ -1,31 +1,30 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import NextAuth, { type NextAuthOptions } from "next-auth";
-import GitHubProvider from "next-auth/providers/github";
 import { PrismaClient } from "@prisma/client";
+import NextAuth, { type NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 
 const prisma = new PrismaClient();
 
-const githubId = process.env.GITHUB_ID;
-const githubSecret = process.env.GITHUB_SECRET;
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-if (!githubId || !githubSecret) {
+if (!googleClientId || !googleClientSecret) {
 	console.warn(
-		"GITHUB_ID or GITHUB_SECRET environment variables are not set. GitHub OAuth will not function.",
+		"GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET environment variables are not set. Google OAuth will not function.",
 	);
 }
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
 	adapter: PrismaAdapter(prisma),
 	providers: [
-		...(githubId && githubSecret
+		...(googleClientId && googleClientSecret
 			? [
-					GitHubProvider({
-						clientId: githubId,
-						clientSecret: githubSecret,
+					GoogleProvider({
+						clientId: googleClientId,
+						clientSecret: googleClientSecret,
 					}),
 				]
 			: []),
-		// You can add more providers here (e.g., Google, Credentials)
 	],
 	// Optional: Add custom pages, callbacks, session strategy, etc.
 	// pages: {

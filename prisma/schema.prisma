@@ -50,8 +50,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-
   chatConversations ChatConversation[]
+  documents     Document[]
 }
 
 model VerificationToken {
@@ -60,6 +60,36 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+enum DocumentUploadStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+model Document {
+  id        String                 @id @default(cuid())
+  name      String
+  status    DocumentUploadStatus   @default(PENDING)
+  userId    String
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunks    DocumentChunk[]
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+}
+
+model DocumentChunk {
+  id          String   @id @default(cuid())
+  content     String
+  embedding   Unsupported("vector(1536)")? // Corresponds to OpenAI text-embedding-3-small
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([documentId])
 }
 
 // T3-Chat Specific Models
@@ -88,38 +118,4 @@ model ChatMessage {
   @@index([conversationId])
 }
 
-model KnowledgeBaseDocument {
-  id        String   @id @default(cuid())
-  name      String
-  filePath  String?  // Optional: path to the original file
-  sourceUrl String?  // Optional: URL if sourced from the web
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  chunks DocumentChunk[]
-}
-
-model DocumentChunk {
-  id          String   @id @default(cuid())
-  documentId  String
-  content     String   @db.Text
-  pageNumber  Int?     // Optional: for PDF page number
-  metadata    Json?    // Optional: any other metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  document   KnowledgeBaseDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  embeddings VectorEmbedding[]
-
-  @@index([documentId])
-}
-
-model VectorEmbedding {
-  id        String   @id @default(cuid())
-  chunkId   String   @unique // Each chunk has one embedding for a given model
-  model     String   // e.g., "text-embedding-ada-002"
-  embedding Unsupported("vector(1536)") // Example: OpenAI embeddings dimension
-  createdAt DateTime @default(now())
-
-  chunk DocumentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
-}

@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-  const cspHeader = `
+	const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+	const cspHeader = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
     style-src 'self' 'unsafe-inline';
@@ -17,41 +17,41 @@ export function middleware(request: NextRequest) {
     upgrade-insecure-requests;
   `;
 
-  const requestHeaders = new Headers(request.headers);
+	const requestHeaders = new Headers(request.headers);
 
-  // Set the CSP header
-  requestHeaders.set('Content-Security-Policy', cspHeader.replace(/\s{2,}/g, ' ').trim());
+	// Set the CSP header
+	requestHeaders.set("Content-Security-Policy", cspHeader.replace(/\s{2,}/g, " ").trim());
 
-  // Set the nonce for use in scripts
-  requestHeaders.set('x-nonce', nonce);
+	// Set the nonce for use in scripts
+	requestHeaders.set("x-nonce", nonce);
 
-  return NextResponse.next({
-    headers: requestHeaders,
-  });
+	return NextResponse.next({
+		headers: requestHeaders,
+	});
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    {
-      source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
-      missing: [
-        {
-          type: 'header',
-          key: 'next-router-prefetch',
-        },
-        {
-          type: 'header',
-          key: 'purpose',
-          value: 'prefetch',
-        },
-      ],
-    },
-  ],
+	matcher: [
+		/*
+		 * Match all request paths except for the ones starting with:
+		 * - api (API routes)
+		 * - _next/static (static files)
+		 * - _next/image (image optimization files)
+		 * - favicon.ico (favicon file)
+		 */
+		{
+			source: "/((?!api|_next/static|_next/image|favicon.ico).*)",
+			missing: [
+				{
+					type: "header",
+					key: "next-router-prefetch",
+				},
+				{
+					type: "header",
+					key: "purpose",
+					value: "prefetch",
+				},
+			],
+		},
+	],
 };

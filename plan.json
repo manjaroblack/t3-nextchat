@@ -1,0 +1,117 @@
+{
+	"plan_name": "Test Agentic Workflow",
+	"version": "1.0.0",
+	"epics": [
+		{
+			"id": "epic-001",
+			"title": "Validate Core Agentic Workflow",
+			"status": "pending",
+			"features": [
+				{
+					"id": "feature-001",
+					"title": "Run a full development cycle for a minor change",
+					"status": "pending",
+					"depends_on": [],
+					"finalize": true,
+					"stories": [
+						{
+							"id": "story-001",
+							"title": "As a developer, I want the agent to perform a small, verifiable task",
+							"status": "pending",
+							"depends_on": [],
+							"goals": [
+								{
+									"id": "goal-001",
+									"title": "Research and document the current version of a dependency",
+									"status": "pending",
+									"depends_on": [],
+									"tasks": [
+										{
+											"id": "task-001",
+											"title": "Research latest 'react' version",
+											"status": "pending",
+											"depends_on": [],
+											"context": ["Use web search to find the latest stable version of React."],
+											"action": {
+												"tool": "search_web",
+												"params": { "query": "latest stable version of react" }
+											},
+											"verification": [
+												{
+													"type": "automated",
+													"criteria": "Check if the output contains a version number matching a semantic versioning pattern (e.g., X.Y.Z).",
+													"expected_outcome": "A valid version string is found and extracted."
+												}
+											]
+										},
+										{
+											"id": "task-002",
+											"title": "Create a temporary file with the version",
+											"status": "pending",
+											"depends_on": ["task-001"],
+											"action": {
+												"tool": "write_to_file",
+												"params": {
+													"TargetFile": "c:\\dev\\t3-nextchat\\react-version.txt",
+													"CodeContent": "React version: [output from task-001]"
+												}
+											},
+											"verification": [
+												{
+													"type": "automated",
+													"criteria": "Check if the file 'react-version.txt' exists.",
+													"expected_outcome": "File exists."
+												}
+											]
+										}
+									]
+								},
+								{
+									"id": "goal-002",
+									"title": "Perform code quality checks and manual validation",
+									"status": "pending",
+									"depends_on": ["goal-001"],
+									"tasks": [
+										{
+											"id": "task-003",
+											"title": "Run linter on the project",
+											"status": "pending",
+											"depends_on": [],
+											"action": {
+												"tool": "run_command",
+												"params": { "CommandLine": "pnpm lint" }
+											},
+											"verification": [
+												{
+													"type": "automated",
+													"criteria": "Check if the command exits with code 0.",
+													"expected_outcome": "Exit code is 0."
+												}
+											]
+										},
+										{
+											"id": "task-004",
+											"title": "Request manual verification of the created file",
+											"status": "pending",
+											"depends_on": ["task-002"],
+											"action": {
+												"tool": "none"
+											},
+											"verification": [
+												{
+													"type": "manual",
+													"criteria": "Please open 'react-version.txt' and confirm it contains a valid React version number.",
+													"expected_outcome": "User confirms the content is correct."
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
