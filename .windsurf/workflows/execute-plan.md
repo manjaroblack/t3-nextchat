@@ -33,7 +33,7 @@ You will continuously execute the following loop until the plan is complete or y
     * Parse the `context` array for the current item. Retrieve all necessary information by any means required, including:
         * Reading local project documents or files.
         * Querying the knowledge graph/memory.
-        * Using tools like `search_web` or `fetch` for external research or to access URLs.
+        * Using tools like `search_web` for external research or to access URLs.
 
 4. **Plan / Decompose (If Necessary):**
     * If the item's `type` is **"Goal"**, use `mcp_sequential_thinking_sequentialthinking` to create a sub-plan of executable tasks.

@@ -84,8 +84,6 @@ OPENAI_API_KEY=""
 
 We follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification for all commit messages. This creates a structured, readable history that is easy to navigate and can be used to automate changelogs.
 
-For a complete set of rules, including detailed commit types and our branching strategy, please refer to the [Version Control Guidelines](./version-control-guidelines.md).
+Before creating a pull request, it's recommended to rebase your feature branch onto `develop` to maintain a clean, linear history.
 
-## Source Code
-
-The source code for this project is hosted on GitHub: [https://github.com/your-username/your-repo-name](https://github.com/your-username/your-repo-name)
+For a complete set of rules, including detailed commit types and our branching strategy, please refer to the [Version Control Guidelines](./.windsurf/rules/version-control-guidelines.md).
