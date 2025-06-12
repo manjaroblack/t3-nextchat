@@ -1,0 +1,1438 @@
+{
+  "plan": {
+    "id": "T3NC-PLAN-V2",
+    "title": "T3-NextChat AI Workspace Implementation Plan",
+    "description": "Comprehensive, hierarchical implementation plan for the T3-NextChat AI workspace, updated with structured verification, error handling, finalization flags, and current best practices. Designed for execution by an AI coding agent following the execute-plan.md workflow.",
+    "version": "2.0.0",
+    "settings": {
+      "mvp_focus": true,
+      "default_commit_message_prefix": "feat:",
+      "default_branch_prefix": "feature/"
+    },
+    "phases": [
+      {
+        "id": "PHASE-1",
+        "type": "Phase",
+        "title": "Foundation & User Authentication (MVP)",
+        "description": "Establish the core project structure, CI/CD pipeline, and implement robust user authentication using @stackframe/stack.",
+        "status": "pending",
+        "epics": [
+          {
+            "id": "EPIC-1.1",
+            "type": "Epic",
+            "title": "Project Setup & CI/CD",
+            "description": "Initialize the Next.js project, configure development environment, and set up CI/CD pipeline for Netlify deployment.",
+            "status": "pending",
+            "depends_on": [],
+            "tasks": [
+              {
+                "id": "TASK-1.1.1",
+                "type": "Task",
+                "title": "Initialize Next.js Project with T3 Stack",
+                "description": "Set up a new Next.js project using the T3 Stack (Next.js, TypeScript, Tailwind CSS, tRPC, Prisma). Ensure App Router is used.",
+                "status": "pending",
+                "depends_on": [],
+                "context": [
+                  "Project uses pnpm as package manager.",
+                  "Targeting Next.js with App Router.",
+                  "Biome for linting/formatting."
+                ],
+                "action": "Run 'pnpm create t3-app@latest' and follow prompts. Configure for App Router. Initialize git repository.",
+                "verification": [
+                  {
+                    "id": "VER-1.1.1.1",
+                    "type": "manual",
+                    "description": "Project directory created with T3 stack structure.",
+                    "criteria": "Verify the project directory exists and contains standard T3 app files (next.config.js, prisma/schema.prisma, src/server/api/root.ts, src/app/layout.tsx, biome.json).",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-1.1.1.2",
+                    "type": "automated",
+                    "description": "Application runs in development mode.",
+                    "check_command": "pnpm dev",
+                    "expected_outcome": "Development server starts without errors, and the default T3 app page is accessible.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If 'pnpm create t3-app' fails, check Node.js/pnpm versions and internet connectivity.",
+                  "If 'pnpm dev' fails, check for port conflicts or missing dependencies (`pnpm install`)."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-1.1.2",
+                "type": "Task",
+                "title": "Configure Neon PostgreSQL Database with Prisma",
+                "description": "Set up a Neon PostgreSQL database instance. Configure Prisma to connect to it. Enable pgvector extension needed for later phases.",
+                "status": "pending",
+                "depends_on": ["TASK-1.1.1"],
+                "context": [
+                  "Neon will be used for PostgreSQL.",
+                  "Prisma is the ORM.",
+                  "pgvector extension is required for vector similarity search (Phase 3).",
+                  "Use existing Neon project IDs: dev: crimson-voice-36018724, prod: royal-dream-47952238"
+                ],
+                "action": "1. Use existing Neon project for dev (crimson-voice-36018724). 2. Get connection string from Neon dashboard. 3. Update .env with DATABASE_URL (ensure it's the dev one: postgresql://neondb_owner:npg_JMo7bhtBx6Ac@ep-flat-union-a8g7bg4v-pooler.eastus2.azure.neon.tech/neondb?sslmode=require). 4. In `prisma/schema.prisma`, ensure `provider = \"postgresql\"` and add `extensions = [\"vector\"]` within the `datasource db { ... }` block. 5. Run 'pnpm prisma db push' to sync schema. 6. Manually ensure pgvector is enabled on Neon if Prisma extension doesn't handle it (it was enabled per memory).",
+                "verification": [
+                  {
+                    "id": "VER-1.1.2.1",
+                    "type": "automated",
+                    "description": "Prisma connectivity test and schema push.",
+                    "check_command": "pnpm prisma db push",
+                    "expected_outcome": "Command completes successfully, indicating Prisma can connect to Neon and sync the basic schema with vector extension.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-1.1.2.2",
+                    "type": "manual",
+                    "description": "Verify pgvector extension status in Neon console.",
+                    "criteria": "Check Neon project settings. The memory '5e7e77c2-4d9f-4edd-8096-7dc9b0b16f09' confirms pgvector is enabled for crimson-voice-36018724.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If connection fails, verify DATABASE_URL, firewall rules, Neon project status.",
+                  "If 'prisma db push' fails, check schema.prisma for errors (especially vector extension syntax).",
+                  "If pgvector extension enabling is problematic, consult Neon/Prisma docs for current best practice."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-1.1.3",
+                "type": "Task",
+                "title": "Set Up Netlify CI/CD Pipeline",
+                "description": "Connect the Git repository to Netlify. Configure build settings and environment variables for automated deployments. Netlify offers zero-config for Next.js App Router.",
+                "status": "pending",
+                "depends_on": ["TASK-1.1.1"],
+                "context": [
+                  "Deployment target is Netlify.",
+                  "Main branch will trigger production deployments.",
+                  "Preview deployments for PRs.",
+                  "Netlify Next.js Runtime handles most configurations automatically."
+                ],
+                "action": "1. Create Netlify site from Git repo. 2. Confirm build command (e.g., 'pnpm build') and publish directory (e.g., '.next') are correctly inferred by Netlify or set if needed. 3. Set environment variables (DATABASE_URL (prod one for main branch: postgresql://neondb_owner:npg_RDToxf76ZQgU@ep-aged-truth-a8zffzio-pooler.eastus2.azure.neon.tech/neondb?sslmode=require), STACK_*, OPENAI_API_KEY, etc.) in Netlify UI for production builds.",
+                "verification": [
+                  {
+                    "id": "VER-1.1.3.1",
+                    "type": "automated",
+                    "description": "Trigger a test deployment on Netlify.",
+                    "check_command": "Push a small change to the main branch.",
+                    "expected_outcome": "Netlify build completes successfully and site is deployed to the Netlify URL.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-1.1.3.2",
+                    "type": "manual",
+                    "description": "Verify Netlify deployment settings and environment variables.",
+                    "criteria": "Check build settings, environment variables (ensure production values are used), and deploy logs in Netlify dashboard.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If build fails, check Netlify logs for errors, ensure build command and publish directory are correct.",
+                  "Ensure all necessary production environment variables are set in Netlify."
+                ],
+                "finalize": true
+              }
+            ]
+          },
+          {
+            "id": "EPIC-1.2",
+            "type": "Epic",
+            "title": "User Authentication with @stackframe/stack",
+            "description": "Implement user sign-up, sign-in, sign-out, and session management using @stackframe/stack.",
+            "status": "pending",
+            "depends_on": ["TASK-1.1.1", "TASK-1.1.2"],
+            "tasks": [
+              {
+                "id": "TASK-1.2.1",
+                "type": "Task",
+                "title": "Integrate @stackframe/stack for Authentication",
+                "description": "Provision Neon Auth for @stackframe/stack, install @stackframe/stack, configure it with Next.js App Router, and set up basic auth UI components.",
+                "status": "pending",
+                "depends_on": ["TASK-1.1.2"],
+                "context": [
+                  "Using @stackframe/stack for authentication.",
+                  "Requires Neon Auth provisioning (Client Key, Secret Key) via mcp4_provision_neon_auth tool using dev Neon Project ID: crimson-voice-36018724.",
+                  "Guidance from mcp4_provision_neon_auth tool description to be followed for setup."
+                ],
+                "action": "1. Use `mcp4_provision_neon_auth` tool to provision Neon Auth for the dev project (crimson-voice-36018724). 2. Add `NEXT_PUBLIC_STACK_PROJECT_ID`, `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY`, `STACK_SECRET_SERVER_KEY` from tool output to `.env.local`. 3. Run `pnpm dlx @stackframe/init-stack . --no-browser`. 4. Verify `stack.ts`, `app/handler/[...stack]/page.tsx`, and layout updates (`StackProvider`, `StackTheme`).",
+                "verification": [
+                  {
+                    "id": "VER-1.2.1.1",
+                    "type": "manual",
+                    "description": "Verify @stackframe/stack files and config.",
+                    "criteria": "Check for `stack.ts`, `app/handler/[...stack]/page.tsx`, updated `app/layout.tsx`. Ensure `.env.local` has Stack keys.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-1.2.1.2",
+                    "type": "automated",
+                    "description": "Basic auth pages render correctly.",
+                    "check_command": "pnpm test:e2e --grep \"StackAuthPagesRender\"",
+                    "expected_outcome": "Playwright test passes: Navigating to `/handler/sign-in` and `/handler/sign-up` shows the StackFrame UI without errors.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If `mcp4_provision_neon_auth` fails, check Neon project ID and tool permissions.",
+                  "If 'pnpm dlx @stackframe/init-stack' fails, check pnpm/Node.js versions and internet connectivity.",
+                  "If auth pages don't render, check .env variables and ensure StackProvider wraps the layout."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-1.2.2",
+                "type": "Task",
+                "title": "Implement Sign-Up and Sign-In Logic",
+                "description": "Ensure users can create accounts and log in using the @stackframe/stack components. Handle successful authentication and redirection.",
+                "status": "pending",
+                "depends_on": ["TASK-1.2.1"],
+                "context": [
+                  "Leverage default routes and UI provided by @stackframe/stack at `/handler/sign-in` and `/handler/sign-up`."
+                ],
+                "action": "1. Define a protected route (e.g., `/dashboard`). 2. Configure redirection after sign-in/sign-up (often handled by StackFrame or can be configured via its options, or by using `useUser({ or: 'redirect' })` on the target page). 3. Manually test user registration and login flows.",
+                "verification": [
+                  {
+                    "id": "VER-1.2.2.1",
+                    "type": "automated",
+                    "description": "Test sign-up flow creates user and redirects.",
+                    "check_command": "pnpm test:e2e --grep \"StackSignUpSuccess\"",
+                    "expected_outcome": "Playwright test passes: User successfully creates a new account via StackFrame UI and is redirected to the designated post-authentication page (e.g., /dashboard). User data appears in Neon 'neon_auth.users' table.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-1.2.2.2",
+                    "type": "automated",
+                    "description": "Test sign-in flow and redirection.",
+                    "check_command": "pnpm test:e2e --grep \"StackSignInSuccess\"",
+                    "expected_outcome": "Playwright test passes: Existing user successfully signs in via StackFrame UI and is redirected to the designated post-authentication page.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If sign-up/sign-in fails, check browser console for errors, verify @stackframe/stack setup, Neon Auth integration, and StackFrame project configuration in their dashboard."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-1.2.3",
+                "type": "Task",
+                "title": "Implement Sign-Out and Session Management",
+                "description": "Provide a way for users to sign out using @stackframe/stack's UserButton or signOut method. Ensure sessions are managed correctly.",
+                "status": "pending",
+                "depends_on": ["TASK-1.2.2"],
+                "context": [
+                  "Use `<UserButton />` component from `@stackframe/stack` for easy UI.",
+                  "Alternatively, use `user.signOut()` from `useUser()` hook for custom sign-out controls."
+                ],
+                "action": "1. Add a `<UserButton />` component to the application header or a protected page. 2. Configure `afterSignOutUrl` in UserButton props or StackProvider if needed. 3. Test sign-out functionality.",
+                "verification": [
+                  {
+                    "id": "VER-1.2.3.1",
+                    "type": "automated",
+                    "description": "Test sign-out functionality via UserButton.",
+                    "check_command": "pnpm test:e2e --grep \"StackSignOutSuccess\"",
+                    "expected_outcome": "Playwright test passes: Authenticated user clicks sign-out from UserButton, session is terminated, and user is redirected to the configured `afterSignOutUrl` (e.g., home or sign-in page).",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-1.2.3.2",
+                    "type": "manual",
+                    "description": "Verify session persistence and invalidation.",
+                    "criteria": "User remains logged in after page refresh. User is logged out after closing and reopening browser if session is not configured to be persistent across browser sessions (or vice-versa). Access to protected routes is denied after sign-out.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If sign-out fails, check console for errors related to @stackframe/stack. Ensure UserButton is within StackProvider context."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-1.2.4",
+                "type": "Task",
+                "title": "Implement Protected Routes",
+                "description": "Secure application routes so that only authenticated users can access them, using @stackframe/stack mechanisms.",
+                "status": "pending",
+                "depends_on": ["TASK-1.2.2"],
+                "context": [
+                  "Use `useUser({ or: \"redirect\" })` in client components.",
+                  "Use `await stackServerApp.getUser({ or: \"redirect\" })` in server components (from `stack.ts`).",
+                  "Next.js Middleware can be used for broader protection by checking `stackServerApp.getUser()`."
+                ],
+                "action": "1. Create a sample protected page (e.g., `/dashboard`). 2. Implement route protection using one of the @stackframe/stack methods (e.g., `useUser({ or: 'redirect', redirectTo: '/handler/sign-in' })` on the `/dashboard` page component). 3. Test access by unauthenticated and authenticated users.",
+                "verification": [
+                  {
+                    "id": "VER-1.2.4.1",
+                    "type": "automated",
+                    "description": "Verify unauthenticated access to protected route redirects to sign-in.",
+                    "check_command": "pnpm test:e2e --grep \"ProtectedDashboardRedirectsUnauth\"",
+                    "expected_outcome": "Playwright test passes: Unauthenticated user attempting to access `/dashboard` is redirected to `/handler/sign-in`.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-1.2.4.2",
+                    "type": "automated",
+                    "description": "Verify authenticated access to protected route.",
+                    "check_command": "pnpm test:e2e --grep \"ProtectedDashboardAllowsAuth\"",
+                    "expected_outcome": "Playwright test passes: Authenticated user can access `/dashboard` successfully.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If redirection fails, check the implementation of route protection logic (e.g., correct usage of `useUser` or `stackServerApp.getUser`) and @stackframe/stack configuration."
+                ],
+                "finalize": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PHASE-2",
+        "type": "Phase",
+        "title": "Core Chat Experience (MVP)",
+        "description": "Develop the core chat interface, enable LLM interactions with streaming, and manage chat history.",
+        "status": "pending",
+        "depends_on": ["PHASE-1"],
+        "epics": [
+          {
+            "id": "EPIC-2.1",
+            "type": "Epic",
+            "title": "Core Chat User Interface",
+            "description": "Implement the static and interactive UI elements of the main chat interface, adhering to UI/UX specifications and ensuring responsiveness.",
+            "status": "pending",
+            "depends_on": ["EPIC-1.1"],
+            "tasks": [
+              {
+                "id": "TASK-2.1.1",
+                "type": "Task",
+                "title": "Implement 3-Section Dark-Themed Layout",
+                "description": "Structure the main chat page with a Sidebar, Main Content Area, and Input Footer, styled with the dark theme.",
+                "status": "pending",
+                "depends_on": [],
+                "context": [
+                  "UI/UX spec mandates a responsive, 3-section dark-themed layout.",
+                  "Use Tailwind CSS for styling."
+                ],
+                "action": "Use Next.js layout files (e.g., `app/chat/layout.tsx`) and Tailwind CSS to create the 3-section structure. Ensure the layout is responsive across defined breakpoints (mobile, tablet, desktop).",
+                "verification": [
+                  {
+                    "id": "VER-2.1.1.1",
+                    "type": "manual",
+                    "description": "Visual check of layout and responsiveness.",
+                    "criteria": "Rendered layout in browser matches the 3-section structure and dark theme. Layout adapts correctly to mobile, tablet, and desktop viewport sizes.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-2.1.1.2",
+                    "type": "automated",
+                    "description": "Basic layout structure E2E test.",
+                    "check_command": "pnpm test:e2e --grep \"ChatLayoutStructure\"",
+                    "expected_outcome": "Playwright test passes: Key layout elements (sidebar, main content, footer) are present on the chat page.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If layout breaks on resize, check Tailwind responsive prefixes (sm:, md:, lg:).",
+                  "If dark theme colors are incorrect, verify Tailwind color configuration and CSS class application."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-2.1.2",
+                "type": "Task",
+                "title": "Implement Chat Input Footer Component",
+                "description": "Develop the interactive chat input footer, including the text input and send button, using Shadcn/ui components.",
+                "status": "pending",
+                "depends_on": ["TASK-2.1.1"],
+                "context": [
+                  "Send button state (enabled/disabled) depends on input presence.",
+                  "Use Shadcn/ui Textarea and Button."
+                ],
+                "action": "Create a React component for the chat input footer. Use Shadcn/ui Textarea for multi-line input and Shadcn/ui Button for send. Implement client-side state (e.g., `useState`) to manage input value and button's disabled state.",
+                "verification": [
+                  {
+                    "id": "VER-2.1.2.1",
+                    "type": "manual",
+                    "description": "Functional check of chat input.",
+                    "criteria": "Chat input accepts multi-line text. Send button enables/disables correctly. Component appearance matches UI/UX spec.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-2.1.2.2",
+                    "type": "automated",
+                    "description": "Unit test for input footer logic.",
+                    "check_command": "pnpm test:unit --grep \"ChatInputFooterState\"",
+                    "expected_outcome": "Vitest/RTL test passes: Button disabled state updates correctly based on text input value.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If button state doesn't update, check event handlers and state logic.",
+                  "If styling is off, ensure Shadcn/ui components are correctly themed and Tailwind classes are applied properly."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-2.1.3",
+                "type": "Task",
+                "title": "Implement Chat Message Display Component",
+                "description": "Create a reusable component to display individual chat messages, differentiating between user and AI, and supporting streamed content.",
+                "status": "pending",
+                "depends_on": ["TASK-2.1.1"],
+                "context": [
+                  "Component must visually distinguish user vs. AI messages.",
+                  "Must be capable of rendering incrementally streamed text."
+                ],
+                "action": "Create a `ChatMessage` React component. Props: `sender: 'user' | 'ai'`, `content: string`. Style distinctively for user and AI. Ensure content can be updated dynamically for streaming.",
+                "verification": [
+                  {
+                    "id": "VER-2.1.3.1",
+                    "type": "manual",
+                    "description": "Visual check of message display.",
+                    "criteria": "Component renders distinct styles for user and AI messages. Structure appears ready for streamed text.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-2.1.3.2",
+                    "type": "automated",
+                    "description": "Unit test for ChatMessage component rendering.",
+                    "check_command": "pnpm test:unit --grep \"ChatMessageRendering\"",
+                    "expected_outcome": "Vitest/RTL test passes: Component renders correctly with different sender props and content.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If styles are not distinct, check CSS class conditions based on sender prop.",
+                  "If streaming update is problematic later, ensure state management allows for efficient re-renders of content."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-2.1.4",
+                "type": "Task",
+                "title": "Implement LLM Selector Component",
+                "description": "Develop the UI component that allows users to select an LLM for their conversation, using Shadcn/ui Select.",
+                "status": "pending",
+                "depends_on": ["TASK-2.1.1"],
+                "context": [
+                  "A predefined list of LLMs will be used initially.",
+                  "Selection should be stored in client-side state."
+                ],
+                "action": "Create an LLM selector using Shadcn/ui Select. Populate with a placeholder list (e.g., GPT-3.5, GPT-4). Implement client-side state to hold the selected LLM value and update on selection.",
+                "verification": [
+                  {
+                    "id": "VER-2.1.4.1",
+                    "type": "manual",
+                    "description": "Functional check of LLM selector.",
+                    "criteria": "LLM selector dropdown is functional. User can select an LLM. UI provides clear visual feedback of current selection. Selected value is stored in state.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-2.1.4.2",
+                    "type": "automated",
+                    "description": "Unit test for LLM selector state change.",
+                    "check_command": "pnpm test:unit --grep \"LLMSelectorState\"",
+                    "expected_outcome": "Vitest/RTL test passes: Selecting an item from dropdown updates the component's state.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If selection doesn't update state, check `onValueChange` handler of Shadcn/ui Select.",
+                  "If dropdown doesn't populate, check item list provided to the component."
+                ],
+                "finalize": true
+              }
+            ]
+          },
+          {
+            "id": "EPIC-2.2",
+            "type": "Epic",
+            "title": "LLM Interaction & History Management",
+            "description": "Implement backend and client-side logic for communication with LLMs (Vercel AI SDK) and for persisting/retrieving chat history via Prisma.",
+            "status": "pending",
+            "depends_on": ["EPIC-1.2", "EPIC-2.1"],
+            "tasks": [
+              {
+                "id": "TASK-2.2.1",
+                "type": "Task",
+                "title": "Implement tRPC Route for Sending Message to LLM",
+                "description": "Create a tRPC mutation to receive user's message, use Vercel AI SDK to stream response from selected LLM. Secure with auth.",
+                "status": "pending",
+                "depends_on": ["TASK-1.2.4"],
+                "context": [
+                  "Core backend for chat, using Vercel AI SDK for streaming.",
+                  "tRPC route must be protected, requiring authentication.",
+                  "Use `StreamingTextResponse` from Vercel AI SDK."
+                ],
+                "action": "1. Define input schema (message content, selected LLM ID) for tRPC mutation. 2. Create tRPC mutation (e.g., `chat.sendMessage`). 3. Implement protected procedure logic to check auth. 4. Use Vercel AI SDK's `OpenAI` (or other provider) stream/chat completion methods. 5. Return `StreamingTextResponse`.",
+                "verification": [
+                  {
+                    "id": "VER-2.2.1.1",
+                    "type": "automated",
+                    "description": "Integration test for tRPC sendMessage route (mocked LLM).",
+                    "check_command": "pnpm test:integration --grep \"TRPCSendMessageAuth\"",
+                    "expected_outcome": "Vitest test passes: Authenticated request to tRPC route with valid input invokes mocked LLM and returns a stream. Unauthenticated request fails.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-2.2.1.2",
+                    "type": "manual",
+                    "description": "Manual test with client (e.g., Postman or simple client script) if needed.",
+                    "criteria": "Route streams back text from a (mocked) LLM. Auth is enforced.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If auth fails, check tRPC protected procedure setup.",
+                  "If LLM call fails, check API keys, LLM provider status, and request format.",
+                  "If streaming fails, ensure `StreamingTextResponse` is correctly used and tRPC setup supports it."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-2.2.2",
+                "type": "Task",
+                "title": "Implement Client-Side LLM Response Streaming with Vercel `useChat`",
+                "description": "Integrate Vercel AI SDK's `useChat` hook to handle sending messages to the tRPC route and displaying streamed LLM responses.",
+                "status": "pending",
+                "depends_on": ["TASK-2.2.1", "TASK-2.1.2", "TASK-2.1.3"],
+                "context": [
+                  "`useChat` hook simplifies client-side streaming logic.",
+                  "Connects to the tRPC endpoint created in TASK-2.2.1."
+                ],
+                "action": "1. In the main chat component, initialize `useChat` hook, pointing its `api` option to the tRPC `chat.sendMessage` route. 2. Use `messages`, `input`, `handleInputChange`, `handleSubmit` from `useChat` to manage UI. 3. Render `messages` using `ChatMessage` component.",
+                "verification": [
+                  {
+                    "id": "VER-2.2.2.1",
+                    "type": "automated",
+                    "description": "E2E test for chat message send and streaming response.",
+                    "check_command": "pnpm test:e2e --grep \"ChatSendStreamReceive\"",
+                    "expected_outcome": "Playwright test passes: User types message, clicks send. Message appears. Streamed AI response appears token-by-token.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-2.2.2.2",
+                    "type": "manual",
+                    "description": "Verify UI updates during streaming.",
+                    "criteria": "LLM responses display smoothly token-by-token. Input field clears after sending. Send button disabled during AI response.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If `useChat` fails to connect, check API endpoint URL and tRPC setup.",
+                  "If messages don't render correctly, check mapping of `useChat` messages to `ChatMessage` props.",
+                  "If streaming is jerky, investigate network or performance bottlenecks."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-2.2.3",
+                "type": "Task",
+                "title": "Define Prisma Schema for Chat History & Implement tRPC Routes",
+                "description": "Define Prisma models for `ChatSession` and `ChatMessage`. Implement tRPC queries/mutations to save new messages, retrieve chat session list, and load messages for a session. Secure with auth.",
+                "status": "pending",
+                "depends_on": ["TASK-1.1.2", "TASK-1.2.4"],
+                "context": [
+                  "`ChatSession` links to `User`. `ChatMessage` links to `ChatSession` and stores sender/content.",
+                  "All data access must be filtered by authenticated `userId`."
+                ],
+                "action": "1. Add `ChatSession` (userId, title, createdAt, updatedAt) and `ChatMessage` (sessionId, sender, content, createdAt) models to `prisma/schema.prisma`. 2. Run `pnpm prisma migrate dev --name add-chat-history-tables`. 3. Create tRPC procedures: `chat.saveMessages` (mutation), `chat.listSessions` (query), `chat.getMessagesForSession` (query). 4. Implement logic using Prisma client, ensuring all queries are scoped to `userId` from session.",
+                "verification": [
+                  {
+                    "id": "VER-2.2.3.1",
+                    "type": "automated",
+                    "description": "Integration tests for chat history tRPC routes.",
+                    "check_command": "pnpm test:integration --grep \"TRPCChatHistory\"",
+                    "expected_outcome": "Vitest tests pass: Messages save correctly. Session list retrieves for user. Messages for session retrieve for user. Unauthorized access attempts fail.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-2.2.3.2",
+                    "type": "manual",
+                    "description": "Check database schema and data via Prisma Studio.",
+                    "criteria": "`ChatSession` and `ChatMessage` tables exist. Data saved via tRPC appears correctly, linked to the right user.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If Prisma migration fails, check schema syntax.",
+                  "If tRPC routes error, debug Prisma queries and auth logic.",
+                  "Ensure `userId` is correctly passed and used in WHERE clauses."
+                ],
+                "finalize": true
+              },
+              {
+                "id": "TASK-2.2.4",
+                "type": "Task",
+                "title": "Implement UI for Chat History Display & Loading",
+                "description": "Implement UI in sidebar to display chat session list. Load selected session's messages into main chat area using tRPC queries.",
+                "status": "pending",
+                "depends_on": ["TASK-2.2.3", "TASK-2.1.1"],
+                "context": [
+                  "Sidebar lists chat sessions for the logged-in user.",
+                  "Clicking a session loads its messages."
+                ],
+                "action": "1. In sidebar component, use tRPC `chat.listSessions` query to fetch and display sessions. 2. On session click, call tRPC `chat.getMessagesForSession` query. 3. Update `useChat` hook's messages (or manage messages state separately) to display loaded history. Highlight active session.",
+                "verification": [
+                  {
+                    "id": "VER-2.2.4.1",
+                    "type": "automated",
+                    "description": "E2E test for chat history display and loading.",
+                    "check_command": "pnpm test:e2e --grep \"ChatHistoryDisplayLoad\"",
+                    "expected_outcome": "Playwright test passes: Chat history list displays in sidebar. Clicking a session loads its messages into main chat area. Active session is highlighted.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-2.2.4.2",
+                    "type": "manual",
+                    "description": "Functional check of chat history UI.",
+                    "criteria": "Chat history list is correct. Loading past conversations works. UI updates as expected.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [
+                  "If session list doesn't load, check tRPC query and client-side data fetching.",
+                  "If messages don't load on click, check handler logic and `getMessagesForSession` query.",
+                  "Ensure state management correctly updates the displayed messages."
+                ],
+                "finalize": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PHASE-3",
+        "type": "Phase",
+        "title": "Phase 3: Advanced Features - RAG & Multi-Modality (Placeholder)",
+        "description": "Implement Retrieval Augmented Generation (RAG) with pgvector for a persistent knowledge base. Includes document ingestion, vectorization, indexing, and contextual querying. Also includes a placeholder for future multi-modality support.",
+        "status": "pending",
+        "depends_on": ["PHASE-2"],
+        "epics": [
+          {
+            "id": "EPIC-3.1",
+            "type": "Epic",
+            "title": "RAG Implementation with pgvector & Vercel AI SDK",
+            "description": "Develop the knowledge base feature: document ingestion pipeline (upload, validation, scan, OCR, chunk, embed) and contextual querying using pgvector for similarity search, integrated with Vercel AI SDK for chat.",
+            "status": "pending",
+            "depends_on": ["EPIC-1.1", "EPIC-1.2", "EPIC-2.2"],
+            "tasks": [
+              {
+                "id": "TASK-3.1.1",
+                "type": "Task",
+                "title": "Implement File Uploader UI for KB",
+                "description": "Develop the file uploader component (e.g., in a 'Settings > Knowledge Base' tab) for PDF and Image files, including client-side validation (type, size). Use Shadcn/ui components.",
+                "status": "pending",
+                "depends_on": ["TASK-1.2.4"],
+                "context": ["Entry point for KB feature.", "Client-side validation for UX."],
+                "action": "Create File Uploader component. Use Shadcn/ui input type='file' or a dedicated upload component. Implement client-side validation for allowed file types (PDF, PNG, JPG) and max file size (e.g., 10MB).",
+                "verification": [
+                  {
+                    "id": "VER-3.1.1.1",
+                    "type": "manual",
+                    "description": "UI allows selection of supported file types and correctly rejects unsupported/oversized files.",
+                    "criteria": "File input works. Validation messages appear for invalid files.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-3.1.1.2",
+                    "type": "automated",
+                    "description": "Unit test for file input validation logic.",
+                    "check_command": "pnpm vitest run -- --grep 'FileInputValidation'",
+                    "expected_outcome": "Vitest/RTL test passes: Validation functions correctly identify valid/invalid files based on type and size.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If validation fails, check file type strings and size comparison logic."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.2",
+                "type": "Task",
+                "title": "Implement tRPC Route for File Reception & Server-Side Validation",
+                "description": "Create a tRPC mutation to handle file uploads (FormData), perform server-side validation (MIME type, size), and sanitize filenames.",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.1", "TASK-1.1.4"],
+                "context": ["Server-side validation is critical for security.", "Sanitize filenames to prevent traversal."],
+                "action": "Create tRPC mutation (e.g., `kb.uploadFile`). Handle `FormData`. Re-validate MIME type and size. Sanitize filenames. Store file temporarily (e.g., /tmp or memory buffer for next step).",
+                "verification": [
+                  {
+                    "id": "VER-3.1.2.1",
+                    "type": "automated",
+                    "description": "Integration test for file upload tRPC route.",
+                    "check_command": "pnpm vitest run -- --grep 'TRPCFileUploadValidation'",
+                    "expected_outcome": "Vitest test passes: Route accepts valid files, rejects invalid ones. Filenames are sanitized.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If server validation fails, check MIME library and size checks.", "Ensure temporary storage is secure and cleaned up."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.3",
+                "type": "Task",
+                "title": "Integrate Server-Side Malware Scanning",
+                "description": "Integrate a malware scanning solution (e.g., ClamAV via Node.js wrapper or cloud API) into the file upload tRPC route.",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.2"],
+                "context": ["Mandatory security requirement.", "Scan after validation, before processing."],
+                "action": "In `kb.uploadFile` tRPC route, after validation, pass file buffer/path to malware scanner. If malware detected, reject upload.",
+                "verification": [
+                  {
+                    "id": "VER-3.1.3.1",
+                    "type": "manual",
+                    "description": "Test with EICAR test file.",
+                    "criteria": "EICAR file is correctly identified and rejected. Clean files proceed.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If scanner integration fails, check API keys/permissions or local ClamAV setup."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.4",
+                "type": "Task",
+                "title": "Implement PDF and Image Text Extraction (OCR)",
+                "description": "Implement logic (e.g., in a separate processing service or tRPC route called after successful upload/scan) to extract text from PDFs (`pdf-parse`) and images (`Tesseract.js`).",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.3"],
+                "context": ["Core of ingestion pipeline."],
+                "action": "Create a module/service for text extraction. Use `pdf-parse` for PDFs, `Tesseract.js` for images. Handle errors for corrupted/unreadable files.",
+                "verification": [
+                  {
+                    "id": "VER-3.1.4.1",
+                    "type": "manual",
+                    "description": "Test with sample PDF and image files.",
+                    "criteria": "Text is accurately extracted. Errors are handled gracefully.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-3.1.4.2",
+                    "type": "automated",
+                    "description": "Unit tests for text extraction from PDF.",
+                    "check_command": "pnpm vitest run -- --grep 'PDFTextExtraction'",
+                    "expected_outcome": "Test passes with mock PDF data.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-3.1.4.3",
+                    "type": "automated",
+                    "description": "Unit tests for OCR from images.",
+                    "check_command": "pnpm vitest run -- --grep 'ImageOCRExtraction'",
+                    "expected_outcome": "Test passes with mock image data.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If extraction fails, check library dependencies and file integrity.", "Consider processing timeouts for large files."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.5",
+                "type": "Task",
+                "title": "Implement Text Chunking",
+                "description": "Divide extracted text into smaller, manageable chunks (e.g., using token-based splitting with overlap via `tiktoken`).",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.4"],
+                "context": ["Prepares text for embedding model."],
+                "action": "Implement text chunking logic. Use `tiktoken` for token counting. Aim for 200-400 tokens per chunk with 10-20% overlap.",
+                "verification": [
+                  {
+                    "id": "VER-3.1.5.1",
+                    "type": "manual",
+                    "description": "Verify chunking output for sample text.",
+                    "criteria": "Text is correctly divided into chunks with specified size/overlap.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-3.1.5.2",
+                    "type": "automated",
+                    "description": "Unit test for text chunking logic.",
+                    "check_command": "pnpm vitest run -- --grep 'TextChunking'",
+                    "expected_outcome": "Test passes with sample text and tiktoken.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If chunking is incorrect, check tokenization and splitting logic."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.6",
+                "type": "Task",
+                "title": "Implement Embedding Generation and Storage in Prisma",
+                "description": "Generate embeddings for each text chunk (e.g., via OpenAI API). Store chunks and embeddings in Prisma (`KnowledgeBaseDocument`, `DocumentChunk`, `VectorEmbedding` tables).",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.5", "TASK-1.1.2"],
+                "context": ["Vectorization and final storage step.", "Define Prisma schema for KB documents, chunks, embeddings if not already done."],
+                "action": "1. Ensure Prisma schema includes: `KnowledgeBaseDocument` (userId, fileName, status, createdAt, updatedAt), `DocumentChunk` (documentId, text, chunkOrder, createdAt), `VectorEmbedding` (chunkId, embedding vector(1536), createdAt). 2. Run `pnpm prisma migrate dev --name update-kb-tables` if schema changed. 3. For each chunk, call embedding API (e.g., OpenAI `text-embedding-ada-002`). Save chunk text and embedding via Prisma. Update `KnowledgeBaseDocument` status (e.g., 'processing', 'completed', 'error').",
+                "verification": [
+                  {
+                    "id": "VER-3.1.6.1",
+                    "type": "manual",
+                    "description": "Check DB via Prisma Studio after processing a test file.",
+                    "criteria": "Embeddings and chunks stored correctly. Document status reflects progress. Timestamps are set.",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "VER-3.1.6.2",
+                    "type": "automated",
+                    "description": "Integration test for embedding generation and storage.",
+                    "check_command": "pnpm vitest run -- --grep 'EmbeddingStorage'",
+                    "expected_outcome": "Test passes: Mocks embedding API, verifies Prisma creates records.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If embedding API fails, check keys and rate limits.", "If Prisma save fails, check schema, vector dimension, and data integrity."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.7",
+                "type": "Task",
+                "title": "Implement HNSW Indexing for pgvector",
+                "description": "Create an HNSW index on the vector column in `VectorEmbedding` table for efficient similarity search, using a Prisma raw SQL migration. Ensure index uses cosine distance if that's the embedding model's metric.",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.6"],
+                "context": ["Critical for vector search performance."],
+                "action": "Create raw SQL migration: `CREATE INDEX ON \"VectorEmbedding\" USING hnsw (embedding vector_cosine_ops);`. Run `pnpm prisma migrate dev --name add-hnsw-index-cosine`.",
+                "verification": [
+                  {
+                    "id": "VER-3.1.7.1",
+                    "type": "manual",
+                    "description": "Verify index creation in PostgreSQL using psql or Neon console.",
+                    "criteria": "HNSW index exists on `VectorEmbedding.embedding` with cosine operator. Query performance meets SLOs (tested later).",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If migration fails, check SQL syntax, pgvector extension status, and vector dimension compatibility."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.8",
+                "type": "Task",
+                "title": "Implement UI for KB Management and Status",
+                "description": "Develop UI (e.g., in 'Settings > Knowledge Base' tab) to list uploaded documents and their real-time processing status (e.g., pending, processing, complete, error), with options to delete documents.",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.1", "TASK-3.1.6"],
+                "context": ["Provides user feedback and control over KB content."],
+                "action": "Create component to fetch and display `KnowledgeBaseDocument` records for the user. Implement polling or WebSockets for status updates. Add delete functionality (tRPC mutation to remove document and associated chunks/embeddings).",
+                "verification": [
+                  {
+                    "id": "VER-3.1.8.1",
+                    "type": "manual",
+                    "description": "Verify document list, status updates, and delete functionality.",
+                    "criteria": "Uploaded documents list accurately. Statuses update correctly. Deleting a document removes it and its data.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If status doesn't update, check data fetching and real-time update mechanism.", "Ensure delete operation cascades correctly or handles related data removal."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.9",
+                "type": "Task",
+                "title": "Develop tRPC Route for Semantic Search",
+                "description": "Create a tRPC query to perform semantic similarity search against user's KB using pgvector and HNSW index.",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.7"],
+                "context": ["Core of KB query functionality.", "Must be performant and secure (filter by userId)."],
+                "action": "Create tRPC query (e.g., `kb.semanticSearch`). Input: user query string, top_k. 1. Generate embedding for query. 2. Perform similarity search in `VectorEmbedding` (e.g., `embedding <-> queryEmbedding` for cosine distance), filtering by `userId` (via joins to `DocumentChunk` then `KnowledgeBaseDocument`). 3. Return top_k most relevant `DocumentChunk` texts.",
+                "verification": [
+                  {
+                    "id": "VER-3.1.9.1",
+                    "type": "automated",
+                    "description": "Integration test for semantic search tRPC route.",
+                    "check_command": "pnpm vitest run -- --grep 'TRPCSemanticSearch'",
+                    "expected_outcome": "Vitest test passes: Route returns relevant text chunks from correct user's KB. Search latency meets SLOs.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If search is slow, check HNSW index usage (EXPLAIN ANALYZE) and query optimization.", "Ensure `userId` filtering is correct and secure."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.10",
+                "type": "Task",
+                "title": "Integrate KB Context into LLM Prompts via Vercel AI SDK",
+                "description": "Modify `chat.sendMessage` tRPC route (from `TASK-2.2.1`) to incorporate retrieved KB context (from `kb.semanticSearch`) into the prompt sent to LLM using Vercel AI SDK.",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.9", "TASK-2.2.1"],
+                "context": ["Makes AI 'context-aware'. Prompt engineering is key for RAG."],
+                "action": "In `chat.sendMessage`, if KB query intended (e.g., based on a flag or specific user intent): 1. Call `kb.semanticSearch`. 2. Construct augmented prompt: `Context: [retrieved_chunks_text]. Chat History: [history]. User: [user_message]. Based on the context and history, answer the user's message.`. 3. Pass to Vercel AI SDK's `useChat` stream.",
+                "verification": [
+                  {
+                    "id": "VER-3.1.10.1",
+                    "type": "manual",
+                    "description": "Verify augmented prompt structure and LLM response quality with KB context.",
+                    "criteria": "Augmented prompt includes KB context. LLM response uses context effectively and cites sources if applicable.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If context not used by LLM, check prompt structure, context length, and LLM instructions.", "Manage token limits for combined context, history, and message."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-3.1.11",
+                "type": "Task",
+                "title": "Implement UI Indicator for KB-Informed Responses",
+                "description": "Develop a subtle visual cue in `ChatMessage` component (from `TASK-2.1.3`) to indicate when a response was informed by the KB, possibly with source document hints.",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.10", "TASK-2.1.3"],
+                "context": ["Transparency for user about AI knowledge source."],
+                "action": "Modify `chat.sendMessage` to return metadata (e.g., `source: 'KB'`) if KB context used. `ChatMessage` component uses this metadata to conditionally render indicator (e.g., book icon, tooltip with source document names).",
+                "verification": [
+                  {
+                    "id": "VER-3.1.11.1",
+                    "type": "manual",
+                    "description": "Visual check of KB indicator and source hints.",
+                    "criteria": "UI indicator appears correctly for KB-informed responses. Source hints (if implemented) are accurate. Matches UI/UX spec.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["If indicator doesn't show, check metadata propagation and conditional rendering logic."],
+                "finalize": true
+              }
+            ]
+          },
+          {
+            "id": "EPIC-3.2",
+            "type": "Epic",
+            "title": "Multi-Modality Support (Placeholder)",
+            "description": "Placeholder for future multi-modal capabilities (e.g., image input/output, voice interaction). Not in MVP scope. This epic is for planning and research.",
+            "status": "pending",
+            "depends_on": ["EPIC-3.1"],
+            "tasks": [
+              {
+                "id": "TASK-3.2.1",
+                "type": "Task",
+                "title": "Research Multi-Modal LLM APIs and SDKs",
+                "description": "Investigate available LLMs (e.g., GPT-4V, Gemini) and SDKs/libraries that support image understanding and generation within chat context, and their integration with Vercel AI SDK.",
+                "status": "pending",
+                "depends_on": [],
+                "context": ["Future enhancement planning."],
+                "action": "Explore options like GPT-4 Vision API, Google Gemini API. Check Vercel AI SDK documentation for existing or planned multi-modal support. Document findings on capabilities, pricing, and integration complexity.",
+                "verification": [
+                  {
+                    "id": "VER-3.2.1.1",
+                    "type": "manual",
+                    "description": "Review research document.",
+                    "criteria": "Comprehensive document outlining at least 2-3 multi-modal options with pros/cons.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [],
+                "finalize": false
+              },
+              {
+                "id": "TASK-3.2.2",
+                "type": "Task",
+                "title": "Design Draft UI/UX for Image Input/Output",
+                "description": "Create initial mockups or wireframes for how users might upload images as part of a chat message and how the AI might respond with images.",
+                "status": "pending",
+                "depends_on": ["TASK-3.2.1"],
+                "context": ["Future enhancement planning."],
+                "action": "Sketch UI concepts for image attachments in chat input, and image display in chat messages. Consider loading states, error states for image processing.",
+                "verification": [
+                  {
+                    "id": "VER-3.2.2.1",
+                    "type": "manual",
+                    "description": "Review design mockups.",
+                    "criteria": "Mockups cover basic image input/output scenarios in chat.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": [],
+                "finalize": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PHASE-04-MVP-SYSTEM",
+        "type": "Phase",
+        "title": "Phase 4: Foundational System & Settings Implementation (MVP)",
+        "description": "Implement basic system settings, history views, and essential foundational capabilities like analytics, error logging, and the Content Security Policy (CSP).",
+        "status": "pending",
+        "epics": [
+          {
+            "id": "EPIC-08-SYSTEM-SETTINGS",
+            "type": "Epic",
+            "title": "Goal 5.1: Establish Basic System Settings & Foundational Capabilities",
+            "description": "Implement the settings page UI and core system foundations for analytics, logging, and security.",
+            "status": "pending",
+            "depends_on": [
+              "PHASE-01-MVP-AUTH",
+              "PHASE-02-MVP-CHAT"
+            ],
+            "tasks": [
+              {
+                "id": "TASK-5.1.1",
+                "type": "Task",
+                "title": "Implement Settings Page UI Shell with Tabs",
+                "description": "Develop the main Settings page UI with a tab-based navigation system.",
+                "status": "pending",
+                "depends_on": [
+                  "TASK-1.2.2",
+                  "TASK-3.1.8"
+                ],
+                "context": "The UI/UX spec defines a tab-based Settings page. This task creates the shell and navigation.",
+                "action": "Create the Settings page component with Shadcn/ui Tabs. For MVP, the tabs will be 'Account', 'History & Sync', and 'Knowledge Base'.",
+                "verification": "The Settings page is accessible. Tab navigation works correctly, switching the displayed content area."
+              },
+              {
+                "id": "TASK-5.1.2",
+                "type": "Task",
+                "title": "Implement Full Chat History View in Settings",
+                "description": "Implement an interface in the 'History & Sync' tab for browsing the complete chat history.",
+                "status": "pending",
+                "depends_on": [
+                  "TASK-5.1.1",
+                  "TASK-2.2.3"
+                ],
+                "context": "This fulfills user story MVP-SYS-001, providing an alternative to the sidebar history list.",
+                "action": "Within the 'History & Sync' tab, implement a UI to fetch and display all of the user's `ChatConversation` records, allowing selection to view full message content.",
+                "verification": "The user can access the 'History & Sync' tab and view a list of all their past chat conversations. Selecting a conversation displays its full content."
+              },
+              {
+                "id": "TASK-5.1.3",
+                "type": "Task",
+                "title": "Implement Basic Analytics and Error Logging",
+                "description": "Integrate a platform-agnostic logging/analytics service compatible with Netlify.",
+                "status": "pending",
+                "depends_on": [],
+                "context": "This provides foundational observability for the MVP (FR-SYS-005, MVP-SYS-003). Vercel-specific tools are no longer applicable.",
+                "action": "Integrate a third-party analytics tool (e.g., Logtail, Sentry, or PostHog) for tracking core user actions (login, message sent, document upload) and capturing critical server-side errors from Netlify Functions.",
+                "verification": "Core user actions and simulated server-side errors are captured and appear in the chosen third-party service's dashboard."
+              },
+              {
+                "id": "TASK-5.1.4",
+                "type": "Task",
+                "title": "Implement Robust Content Security Policy (CSP)",
+                "description": "Implement a strong CSP using Next.js Middleware or Netlify Headers.",
+                "status": "pending",
+                "depends_on": [],
+                "context": "A restrictive CSP is a mandatory security requirement (SR-CSP-001, FR-SYS-003).",
+                "action": "Configure a strong CSP, defining trusted sources for scripts, styles, etc. This can be done in `middleware.ts` or a `netlify.toml` file's headers block.",
+                "verification": "HTTP response headers for all pages include a `Content-Security-Policy` header with the correct restrictive directives. Common XSS attack vectors are blocked."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PHASE-05-MVP-RELEASE",
+        "type": "Phase",
+        "title": "Phase 5: MVP Release Preparation & Deployment",
+        "description": "Finalize the MVP for release, including comprehensive testing, security reviews, documentation, and deployment to Netlify.",
+        "status": "pending",
+        "epics": [
+          {
+            "id": "EPIC-09-FINAL-TESTING",
+            "type": "Epic",
+            "title": "Goal 6.1: Finalize MVP Testing & Verification",
+            "description": "Ensure the MVP meets all predefined quality, functional, and non-functional standards before release, based on the Test Strategy and Plan.",
+            "status": "pending",
+            "depends_on": [
+              "PHASE-02-MVP-CHAT",
+              "PHASE-03-MVP-KB",
+              "PHASE-04-MVP-SYSTEM"
+            ],
+            "tasks": [
+              {
+                "id": "TASK-6.1.1",
+                "type": "Task",
+                "title": "Execute Comprehensive MVP Test Plan",
+                "description": "Execute all defined test types for the MVP scope, including functional, non-functional, and specialized testing.",
+                "status": "pending",
+                "depends_on": [],
+                "context": "Comprehensive testing is required to validate the MVP against all requirements and exit criteria.",
+                "action": "Follow the MVP Test Strategy and Plan document to execute all planned test cases, including functional, performance, security, and usability tests.",
+                "verification": "All planned test cases are executed. Test execution logs are generated, detailing the status (Pass/Fail) and results for each case."
+              },
+              {
+                "id": "TASK-6.1.2",
+                "type": "Task",
+                "title": "Verify Completion Against MVP Exit Criteria Checklist",
+                "description": "Systematically verify the MVP against each criterion listed in the MVP Exit Criteria table from the Test Plan.",
+                "status": "pending",
+                "depends_on": [
+                  "TASK-6.1.1"
+                ],
+                "context": "This is the final quality gate before recommending the MVP for release.",
+                "action": "Go through the MVP Exit Criteria checklist from the Test Plan. Verify functional pass rates, defect counts, NFR SLOs being met, and UAT sign-off.",
+                "verification": "All MVP exit criteria (MVP-EC-001 through MVP-EC-012) are confirmed as met and the status is formally signed off by the Product Owner."
+              }
+            ]
+          },
+          {
+            "id": "EPIC-10-DEPLOYMENT",
+            "type": "Epic",
+            "title": "Goal 6.2: Deploy MVP to Production on Netlify",
+            "description": "Prepare the production environment and deploy the verified MVP build to Netlify.",
+            "status": "pending",
+            "depends_on": [
+              "EPIC-09-FINAL-TESTING"
+            ],
+            "tasks": [
+              {
+                "id": "TASK-6.2.1",
+                "type": "Task",
+                "title": "Configure Netlify Production Environment",
+                "description": "Set up and configure the Netlify production site with all necessary environment variables and a custom domain.",
+                "status": "pending",
+                "depends_on": [],
+                "context": "The production environment must be correctly configured and secured before deployment.",
+                "action": "Configure the Netlify production site, including build settings in `netlify.toml`. Add all production environment variables (API keys, database URLs, etc.) securely in the Netlify UI. Configure the custom domain.",
+                "verification": "The Netlify production environment is fully configured. All environment variables are set and secured."
+              },
+              {
+                "id": "TASK-6.2.2",
+                "type": "Task",
+                "title": "Deploy Verified MVP Build to Production",
+                "description": "Deploy the final, verified MVP build from the main Git branch to the Netlify production environment.",
+                "status": "pending",
+                "depends_on": [
+                  "TASK-6.2.1"
+                ],
+                "context": "This is the final step to make the MVP live.",
+                "action": "Merge the release-ready code to the main branch, triggering the Netlify CI/CD pipeline to build and deploy to production.",
+                "verification": "The deployment completes successfully. The new application version is live on the production domain."
+              },
+              {
+                "id": "TASK-6.2.3",
+                "type": "Task",
+                "title": "Conduct Post-Deployment Smoke Tests",
+                "description": "Execute a suite of critical-path smoke tests against the live production environment.",
+                "status": "pending",
+                "depends_on": [
+                  "TASK-6.2.2"
+                ],
+                "context": "Immediate post-deployment verification is needed to ensure core functionalities are working.",
+                "action": "Execute a predefined suite of smoke tests against the live production environment, covering login, sending a chat message, and a basic KB query.",
+                "verification": "All post-deployment smoke tests pass successfully in the production environment."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PHASE-6",
+        "type": "Phase",
+        "title": "Phase 6: Post-MVP Increment 1 - AI Tool Use & Basic Collaboration",
+        "description": "Introduce foundational AI agent tool usage capabilities and basic real-time collaborative chat features.",
+        "status": "pending",
+        "depends_on": ["PHASE-5"],
+        "epics": [
+          {
+            "id": "EPIC-6.1",
+            "type": "Epic",
+            "title": "Basic AI Agent & Tool Integration Framework",
+            "description": "Implement a foundational framework allowing the LLM to request the use of a limited set of predefined system tools (e.g., web search, calculator).",
+            "status": "pending",
+            "depends_on": ["PHASE-5"],
+            "tasks": [
+              {
+                "id": "TASK-6.1.1",
+                "type": "Task",
+                "title": "Define Simple Tool Schema and Invocation Protocol",
+                "description": "Define a JSON schema for describing tools the LLM can use and a protocol for how the LLM requests tool invocation and receives results.",
+                "status": "pending",
+                "depends_on": ["EPIC-2.2"],
+                "context": ["Foundation for LLM tool use.", "Inspired by OpenAI Functions/Tools."],
+                "action": "1. Define a TypeScript interface for ToolDescription (name, description, parameters_schema). 2. Define request/response formats for LLM-to-Tool-Executor communication.",
+                "verification": [
+                  {
+                    "id": "VER-6.1.1.1",
+                    "type": "manual",
+                    "description": "Review tool schema and protocol definitions.",
+                    "criteria": "Schema is clear, covers basic tool needs. Protocol handles requests and responses, including errors.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Ensure schema is flexible enough for future tools."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-6.1.2",
+                "type": "Task",
+                "title": "Implement tRPC Route for LLM Tool Requests",
+                "description": "Modify the main chat tRPC route (`chat.sendMessage`) to detect tool use requests from the LLM, parse them, and delegate to a tool execution mechanism.",
+                "status": "pending",
+                "depends_on": ["TASK-6.1.1", "TASK-2.2.1"],
+                "context": ["Enables LLM to signal tool use."],
+                "action": "Update `chat.sendMessage`: If LLM response indicates tool use (e.g., specific JSON structure or function call marker): parse request, validate against ToolDescription. Call a new ToolExecutor service.",
+                "verification": [
+                  {
+                    "id": "VER-6.1.2.1",
+                    "type": "automated",
+                    "description": "Integration test for tRPC route detecting tool use.",
+                    "check_command": "pnpm vitest run -- --grep 'TRPCToolUseDetection'",
+                    "expected_outcome": "Test passes: Mock LLM response with tool request. tRPC route correctly parses and attempts to delegate.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Handle malformed tool requests from LLM.", "Secure tool execution against unauthorized access."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-6.1.3",
+                "type": "Task",
+                "title": "Implement Basic Tool Executor and Example Tool (e.g., Calculator)",
+                "description": "Create a ToolExecutor service that can run a predefined tool (e.g., a simple calculator) and return its output to the LLM flow.",
+                "status": "pending",
+                "depends_on": ["TASK-6.1.2"],
+                "context": ["Demonstrates end-to-end tool use."],
+                "action": "1. Create ToolExecutor service. 2. Implement a 'calculator' tool (takes math expression string, returns result). 3. Integrate ToolExecutor with `chat.sendMessage` to return tool output back to LLM for final response generation.",
+                "verification": [
+                  {
+                    "id": "VER-6.1.3.1",
+                    "type": "manual",
+                    "description": "Test calculator tool via chat interface.",
+                    "criteria": "Ask LLM to calculate something. LLM uses calculator tool. Final response includes correct calculation.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Handle errors from tool execution (e.g., invalid input to calculator)."],
+                "finalize": true
+              }
+            ]
+          },
+          {
+            "id": "EPIC-6.2",
+            "type": "Epic",
+            "title": "Foundational Real-time Collaborative Chat",
+            "description": "Enable basic real-time message synchronization for multiple users in a shared chat session using WebSockets or tRPC subscriptions.",
+            "status": "pending",
+            "depends_on": ["PHASE-5", "EPIC-2.1", "EPIC-2.2"],
+            "tasks": [
+              {
+                "id": "TASK-6.2.1",
+                "type": "Task",
+                "title": "Update Prisma Schema for Shared/Multi-User Chat Sessions",
+                "description": "Extend Prisma schema to support chat sessions involving multiple participants (e.g., a `ChatSessionParticipant` table linking users to sessions).",
+                "status": "pending",
+                "depends_on": ["TASK-2.2.3"],
+                "context": ["DB foundation for collaborative chat."],
+                "action": "Add `ChatSessionParticipant` model (sessionId, userId). Modify `ChatSession` if needed to denote shared sessions. Run `pnpm prisma migrate dev --name add-collab-chat-tables`.",
+                "verification": [
+                  {
+                    "id": "VER-6.2.1.1",
+                    "type": "manual",
+                    "description": "Review schema changes in `schema.prisma` and DB.",
+                    "criteria": "Schema correctly models multi-user sessions.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Ensure foreign keys and relations are correct."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-6.2.2",
+                "type": "Task",
+                "title": "Implement Real-time Message Broadcasting (tRPC Subscriptions or WebSockets)",
+                "description": "Implement mechanism for broadcasting new messages to all participants in a shared session. Explore tRPC subscriptions or a WebSocket server.",
+                "status": "pending",
+                "depends_on": ["TASK-6.2.1", "TASK-2.2.1"],
+                "context": ["Core of real-time collaboration."],
+                "action": "1. Research: Feasibility of tRPC subscriptions for this scale/need vs. dedicated WebSocket server (e.g., `ws` package, Socket.IO). 2. Implement chosen solution: When a message is saved via `chat.sendMessage` in a shared session, broadcast it to other participants.",
+                "verification": [
+                  {
+                    "id": "VER-6.2.2.1",
+                    "type": "manual",
+                    "description": "Test with two users in a shared session.",
+                    "criteria": "User A sends message. User B receives it in real-time without manual refresh.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Handle connection drops and reconnections.", "Ensure messages are broadcast only to correct session participants."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-6.2.3",
+                "type": "Task",
+                "title": "Update Chat UI to Handle Real-time Messages",
+                "description": "Modify chat UI (`ChatMessagesDisplay`, `useChat`) to subscribe to real-time message updates and append new messages from other users.",
+                "status": "pending",
+                "depends_on": ["TASK-6.2.2", "TASK-2.1.3"],
+                "context": ["Client-side handling of collaborative messages."],
+                "action": "Update `ChatMessagesDisplay` to connect to tRPC subscription or WebSocket. On receiving a new message, append it to the local message list.",
+                "verification": [
+                  {
+                    "id": "VER-6.2.3.1",
+                    "type": "manual",
+                    "description": "Verify UI updates correctly in real-time.",
+                    "criteria": "New messages from other users appear smoothly in the chat UI for all participants.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Handle duplicate messages if broadcast and initial fetch overlap.", "Ensure UI performance with frequent updates."],
+                "finalize": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PHASE-7",
+        "type": "Phase",
+        "title": "Phase 7: Post-MVP Increment 2 - Advanced Collaboration & Agent Automation",
+        "description": "Deliver more comprehensive real-time collaborative features including team workspaces and shared knowledge bases, alongside more sophisticated AI agent capabilities like multi-step task execution.",
+        "status": "pending",
+        "depends_on": ["PHASE-6"],
+        "epics": [
+          {
+            "id": "EPIC-7.1",
+            "type": "Epic",
+            "title": "Advanced Collaborative Features (Workspaces & Shared KBs)",
+            "description": "Introduce persistent team workspaces, role-based access control, and the ability to share knowledge bases within workspaces.",
+            "status": "pending",
+            "depends_on": ["PHASE-6", "EPIC-3.1", "EPIC-6.2"],
+            "tasks": [
+              {
+                "id": "TASK-7.1.1",
+                "type": "Task",
+                "title": "Prisma Schema for Workspaces, Roles, and Shared KBs",
+                "description": "Define Prisma models for `Workspace`, `WorkspaceMember` (with roles like 'admin', 'editor', 'viewer'), and `SharedKnowledgeBase` (linking KBs to workspaces with permissions).",
+                "status": "pending",
+                "depends_on": ["TASK-3.1.3", "TASK-6.2.1"],
+                "context": ["Database foundation for team collaboration and KB sharing."],
+                "action": "1. Define `Workspace` (id, name, ownerId). 2. Define `WorkspaceMember` (workspaceId, userId, role). 3. Define `SharedKnowledgeBase` (workspaceId, knowledgeBaseId, accessLevel). 4. Run `pnpm prisma migrate dev --name add-workspaces-roles-shared-kbs`.",
+                "verification": [
+                  {
+                    "id": "VER-7.1.1.1",
+                    "type": "manual",
+                    "description": "Review schema in `schema.prisma` and database.",
+                    "criteria": "Schema correctly models workspaces, roles, and KB sharing with appropriate relations and constraints.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Ensure robust role/permission logic.", "Consider cascading deletes or ownership transfers."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-7.1.2",
+                "type": "Task",
+                "title": "tRPC Routes for Workspace & Shared KB Management",
+                "description": "Implement tRPC routes for creating/listing workspaces, inviting/managing members, assigning roles, and sharing/unsharing KBs within workspaces.",
+                "status": "pending",
+                "depends_on": ["TASK-7.1.1"],
+                "context": ["Backend API for managing collaborative entities."],
+                "action": "Create tRPC procedures: `workspace.create`, `workspace.list`, `workspace.addMember`, `workspace.removeMember`, `workspace.updateMemberRole`, `workspace.shareKb`, `workspace.unshareKb`. Implement authorization checks based on user roles.",
+                "verification": [
+                  {
+                    "id": "VER-7.1.2.1",
+                    "type": "automated",
+                    "description": "Integration tests for tRPC workspace routes.",
+                    "check_command": "pnpm vitest run -- --grep 'TRPCWorkspaceManagement'",
+                    "expected_outcome": "Tests pass: CRUD operations for workspaces, members, and shared KBs work as expected with role-based access control.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Secure all routes with proper authentication and authorization.", "Handle race conditions in member/KB management."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-7.1.3",
+                "type": "Task",
+                "title": "UI for Workspace Management and Shared KB Access",
+                "description": "Develop UI components (using Shadcn/ui) for users to create/manage workspaces, invite members, and access KBs shared within their workspaces.",
+                "status": "pending",
+                "depends_on": ["TASK-7.1.2", "TASK-3.1.7"],
+                "context": ["User interface for collaborative features."],
+                "action": "1. Create pages/components for: Workspace dashboard, create workspace form, member invitation dialog, KB sharing settings within workspace. 2. Integrate with tRPC routes.",
+                "verification": [
+                  {
+                    "id": "VER-7.1.3.1",
+                    "type": "manual",
+                    "description": "Test workspace and KB sharing UI flows.",
+                    "criteria": "Users can create workspaces, invite others, manage roles, share KBs, and access shared KBs according to their permissions.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Ensure intuitive UX for managing complex permissions.", "Provide clear feedback on actions and errors."],
+                "finalize": true
+              }
+            ]
+          },
+          {
+            "id": "EPIC-7.2",
+            "type": "Epic",
+            "title": "Advanced AI Agent Capabilities (Multi-step Tasks & Planning)",
+            "description": "Enable the AI agent to perform multi-step tasks by orchestrating sequences of tool calls, potentially involving a simple planning mechanism.",
+            "status": "pending",
+            "depends_on": ["PHASE-6", "EPIC-6.1"],
+            "tasks": [
+              {
+                "id": "TASK-7.2.1",
+                "type": "Task",
+                "title": "Design Agent State Machine/Planner for Multi-step Tasks",
+                "description": "Design a mechanism (e.g., state machine, simple planner) that allows the agent to break down a complex user request into a sequence of tool calls or thought steps.",
+                "status": "pending",
+                "depends_on": ["TASK-6.1.3"],
+                "context": ["Foundation for more autonomous agent behavior."],
+                "action": "1. Define states for agent execution (e.g., THINKING, TOOL_REQUESTED, TOOL_EXECUTING, RESPONDING). 2. Design logic for transitioning between states based on LLM output and tool results. 3. LLM prompt engineering to encourage step-by-step thinking or plan generation.",
+                "verification": [
+                  {
+                    "id": "VER-7.2.1.1",
+                    "type": "manual",
+                    "description": "Review agent planning design document.",
+                    "criteria": "Design supports sequential tool calls, error handling within steps, and eventual response generation.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Keep planner simple initially; avoid over-engineering.", "Consider how to handle loops or dead-ends in agent logic."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-7.2.2",
+                "type": "Task",
+                "title": "Enhance ToolExecutor for Sequential and Conditional Tool Calls",
+                "description": "Modify the `ToolExecutor` and chat tRPC route to manage a sequence of tool calls, potentially passing context/results from one tool to the next, based on the agent's plan.",
+                "status": "pending",
+                "depends_on": ["TASK-7.2.1", "TASK-6.1.3"],
+                "context": ["Enables agent to chain tool operations."],
+                "action": "Update `chat.sendMessage` and `ToolExecutor` to: 1. Maintain agent state across multiple interactions for a single user request. 2. Allow LLM to request a next tool call, using results from previous calls. 3. Feed tool results back to LLM for next step determination.",
+                "verification": [
+                  {
+                    "id": "VER-7.2.2.1",
+                    "type": "manual",
+                    "description": "Test a multi-step task (e.g., 'Search for X, then calculate Y based on search result').",
+                    "criteria": "Agent correctly executes multiple tools in sequence, using intermediate results, and provides a final coherent answer.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Manage execution timeouts for long sequences.", "Provide clear error reporting if a step in the sequence fails."],
+                "finalize": true
+              },
+              {
+                "id": "TASK-7.2.3",
+                "type": "Task",
+                "title": "UI to Display Agent's Multi-step Process (Optional/Basic)",
+                "description": "Optionally, implement a very basic UI indication that the agent is working on a multi-step task (e.g., 'Thinking...', 'Step 1: Used tool X').",
+                "status": "pending",
+                "depends_on": ["TASK-7.2.2"],
+                "context": ["Improves user experience by showing agent activity."],
+                "action": "If LLM/agent provides intermediate thought/tool use messages, display them in a subtle way in the chat UI before the final answer.",
+                "verification": [
+                  {
+                    "id": "VER-7.2.3.1",
+                    "type": "manual",
+                    "description": "Observe UI during a multi-step agent task.",
+                    "criteria": "UI provides some indication of the agent's progress or actions before final response.",
+                    "status": "pending"
+                  }
+                ],
+                "error_handling": ["Avoid overly verbose or distracting UI updates."],
+                "finalize": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
